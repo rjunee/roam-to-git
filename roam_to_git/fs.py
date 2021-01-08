@@ -1,5 +1,6 @@
 import datetime
 import json
+import re
 import platform
 import zipfile
 from pathlib import Path
@@ -8,6 +9,7 @@ from typing import Dict, List
 import git
 import pathvalidate
 from loguru import logger
+from hashlib import sha1
 
 
 def get_zip_path(zip_dir_path: Path) -> Path:
@@ -58,6 +60,27 @@ def save_markdowns(directory: Path, contents: Dict[str, str]):
         # https://stackoverflow.com/questions/11735363/python3-unicodeencodeerror-crontab
         with dest.open("w", encoding="utf-8") as f:
             f.write(content)
+
+def save_markdown_notes(directory: Path, contents: Dict[str, str]):
+    logger.debug("Saving markdown notes to {}", directory)
+    # Format and write the markdown files
+    for file_name, content in contents.items():
+        file_name = note_filename(file_name)
+        dest = (directory / file_name)
+        dest.parent.mkdir(parents=True, exist_ok=True)  # Needed if a new directory is used
+        # We have to specify encoding because crontab on Mac don't use UTF-8
+        # https://stackoverflow.com/questions/11735363/python3-unicodeencodeerror-crontab
+        with dest.open("w", encoding="utf-8") as f:
+            f.write(content)
+
+
+def note_filename(filename: str):
+    file_hash = sha1(filename.encode('utf-8')).hexdigest()[:6]
+    filename = filename.lower()
+    filename = re.sub(r" ", r"-", filename)
+    filename = re.sub(r"[*#?]", r"-", filename)
+    filename = f"{filename[:-3]}-{file_hash}.md"
+    return filename
 
 
 def unzip_and_save_json_archive(zip_dir_path: Path, directory: Path):
