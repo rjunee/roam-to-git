@@ -60,7 +60,7 @@ def format_markdown(contents: Dict[str, str]) -> Dict[str, str]:
 
 def get_allowed_notes(dir: Path) -> List[str]:
     allowed_notes = []
-    if (dir/"Public.md").exists():
+    if (dir/"Garden.md").exists():
         with open(dir/"Garden.md") as f:
             for line in f:
                 match = re.match(r'- \[\[(.*)\]\]', line)
