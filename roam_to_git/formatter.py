@@ -4,8 +4,9 @@ from collections import defaultdict
 from itertools import takewhile
 from pathlib import Path
 from typing import Dict, List, Match, Tuple
+#from fs import note_filename
 from roam_to_git.fs import note_filename
-
+from loguru import logger
 
 def read_markdown_directory(raw_directory: Path) -> Dict[str, str]:
     contents = {}
@@ -60,7 +61,7 @@ def format_markdown(contents: Dict[str, str]) -> Dict[str, str]:
 def get_allowed_notes(dir: Path) -> List[str]:
     allowed_notes = []
     if (dir/"Public.md").exists():
-        with open(dir/"Public.md") as f:
+        with open(dir/"Garden.md") as f:
             for line in f:
                 match = re.match(r'- \[\[(.*)\]\]', line)
                 if match:
