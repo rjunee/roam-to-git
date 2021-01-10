@@ -172,7 +172,7 @@ def add_back_links_notes(content: str, notes_dir: Path, file_name: str, back_lin
         new_lines.extend(["".join(extended_context), ""])
     backlinks_str = "\n".join(new_lines)
     content = fix_triple_backticks(content)
-    return f"---\ntitle: {file_name[:-3]}\n---\n\n{content}\n{backlinks_str}\n"
+    return f"---\ntitle: '{file_name[:-3]}'\n---\n\n{content}\n{backlinks_str}\n"
 
 
 def convert_links(line: str):
