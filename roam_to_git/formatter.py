@@ -182,6 +182,7 @@ def convert_links(line: str):
         match = re.search(r"\(<([^>]*)>\)", line)
         if match:
             converted_link = note_filename(match.group(1))[:-3]
+            converted_link = re.sub(':', '', converted_link) #strip : from links so jekyll works properly
             line = line.replace(match.group(0), f"(/{converted_link}){suffix}")
         else:
             keep_looking = False
