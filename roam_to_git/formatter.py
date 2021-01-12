@@ -83,6 +83,7 @@ def format_markdown_notes(contents: Dict[str, str], notes_dir: Path, allowed_not
 
             # Format content. Backlinks content will be formatted automatically.
             content = format_to_do(content)
+            content = extract_featured_image(content)
             link_prefix = "../" * sum("/" in char for char in file_name)
             content = format_link(content, link_prefix=link_prefix)
             content = convert_links(content)
@@ -95,6 +96,20 @@ def format_markdown_notes(contents: Dict[str, str], notes_dir: Path, allowed_not
 def format_to_do(contents: str):
     contents = re.sub(r"{{\[\[TODO\]\]}} *", r"[ ] ", contents)
     contents = re.sub(r"{{\[\[DONE\]\]}} *", r"[x] ", contents)
+    return contents
+
+
+def extract_featured_image(contents: str):
+    # match - **[note-image](/note-image-79f375){: .internal-link}:** https://unsplash.com/photos/A57akxc-4BQ
+    # output in front matter https://source.unsplash.com/A57akxc-4BQ/800x300
+    # TODO update image size based on template (or leave size out here and let the template do it?)
+    image_found = re.search(r"\- note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/(A57akxc-4BQ)", contents)
+    if image_found:
+        # Strip meta tag
+        contents = re.sub(r"\- note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/.*", '', contents)
+        # Add to frontmatter
+        contents = re.sub(r"^---\ntitle\:", "---\nfeatured_image: 'https://source.unsplash.com/" + image_found.group(1) + "/800x300'\ntitle:", contents)
+        #logger.info(contents)
     return contents
 
 
