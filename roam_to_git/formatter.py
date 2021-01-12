@@ -84,6 +84,8 @@ def format_markdown_notes(contents: Dict[str, str], notes_dir: Path, allowed_not
             # Format content. Backlinks content will be formatted automatically.
             content = format_to_do(content)
             content = extract_featured_image(content)
+            content = clean_or(content)
+            content = youtube_embed(content)
             link_prefix = "../" * sum("/" in char for char in file_name)
             content = format_link(content, link_prefix=link_prefix)
             content = convert_links(content)
@@ -99,6 +101,7 @@ def format_to_do(contents: str):
     return contents
 
 
+# Take a note-image attribute and convert to featured_image frontmatter for jekyll theme
 def extract_featured_image(contents: str):
     # match - **[note-image](/note-image-79f375){: .internal-link}:** https://unsplash.com/photos/A57akxc-4BQ
     # output in front matter https://source.unsplash.com/A57akxc-4BQ/800x300
@@ -111,6 +114,22 @@ def extract_featured_image(contents: str):
         contents = re.sub(r"^---\ntitle\:", "---\nfeatured_image: 'https://source.unsplash.com/" + image_found.group(1) + "/800x300'\ntitle:", contents)
         #logger.info(contents)
     return contents
+
+
+# Replace Roam OR options with just the selected (first) option so it doesn't get interpreted as liquid syntax
+def clean_or(contents: str):
+    or_found = re.search(r"\{\{or\:(.*?) \|(.*)\}\}", contents)
+    if or_found:
+        contents = re.sub(r"\{\{or\:(.*)\}\}", or_found.group(1), contents)
+    return contents
+
+# Replace YouTube embeds
+def youtube_embed(contents: str):
+    yt_found = re.search(r"\{\{youtube\: http(.*)\/(.*)\}\}", contents)
+    if yt_found:
+        contents = re.sub(r"\{\{youtube\: http(.*)\/(.*)\}\}", '\n<iframe width="560" height="315" src="https://www.youtube.com/embed/' + yt_found.group(2) + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>', contents)
+    return contents
+
 
 
 def extract_links(string: str) -> List[Match]:
