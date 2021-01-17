@@ -77,6 +77,7 @@ def format_markdown_notes(contents: Dict[str, str], notes_dir: Path, allowed_not
     out = {}
     for file_name, content in contents.items():
         if file_name[:-3] in allowed_notes:
+            content = remove_toplevel_bullets(content)
             # We add the backlinks first, because they use the position of the caracters
             # of the regex matchs
             content = add_back_links_notes(content, notes_dir, file_name, back_links[file_name])
@@ -106,10 +107,10 @@ def extract_featured_image(contents: str):
     # match - **[note-image](/note-image-79f375){: .internal-link}:** https://unsplash.com/photos/A57akxc-4BQ
     # output in front matter https://source.unsplash.com/A57akxc-4BQ/800x300
     # TODO update image size based on template (or leave size out here and let the template do it?)
-    image_found = re.search(r"\- note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/(A57akxc-4BQ)", contents)
+    image_found = re.search(r"note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/(A57akxc-4BQ)", contents)
     if image_found:
         # Strip meta tag
-        contents = re.sub(r"\- note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/.*", '', contents)
+        contents = re.sub(r"note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/.*", '', contents)
         # Add to frontmatter
         contents = re.sub(r"^---\ntitle\:", "---\nfeatured_image: 'https://source.unsplash.com/" + image_found.group(1) + "/800x300'\ntitle:", contents)
         #logger.info(contents)
@@ -130,6 +131,70 @@ def youtube_embed(contents: str):
         contents = re.sub(r"\{\{youtube\: http(.*)\/(.*)\}\}", '\n<iframe width="560" height="315" src="https://www.youtube.com/embed/' + yt_found.group(2) + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>', contents)
     return contents
 
+# Remove top level bullets so it looks more like an article less like Roam
+# TODO This function is from Manoj on Fiverr.  Not the best code, should be refactored
+def remove_toplevel_bullets(contents: str):
+    lines = contents.splitlines()
+    is_heading_list=[False, False, False, False]
+    new_contents = ""
+
+    for i in range(0,len(lines)):
+        edited_line = ""
+        if lines[i]=="" or lines[i]==" " or lines[i]=="  " or lines[i]=="   " or lines[i]=="    ":
+            continue
+
+        if lines[i][0] == "-":
+            if('#' in lines[i][2:].split(" ")[0]):
+                is_heading_list[0]=True
+            else:
+                is_heading_list[0] = False
+            edited_line=lines[i][2:]+"\n"
+
+        elif lines[i][0:5] == "    -":
+            if('#' in lines[i][6:].split(" ")[0]):
+                is_heading_list[1] = True
+                edited_line=lines[i][6:]+"\n"
+            elif(is_heading_list[0]):
+                is_heading_list[1] = False
+                edited_line=lines[i][6:]+"\n"
+            else:
+                is_heading_list[1] = False
+                edited_line = lines[i][4:] + "\n"
+
+        elif lines[i][0:9] == "        -":
+            if('#' in lines[i][10:].split(" ")[0]):
+                is_heading_list[2] = True
+                edited_line=lines[i][10:]+"\n"
+            elif(is_heading_list[1]):
+                is_heading_list[2] = False
+                edited_line=lines[i][10:]+"\n"
+            else:
+                is_heading_list[2] = False
+                if(is_heading_list[:3]==[False,False,False]):
+                    edited_line="    "
+                edited_line += lines[i][8:] + "\n"
+
+        elif lines[i][0:13] == "            -":
+            if('#' in lines[i][14:].split(" ")[0]):
+                is_heading_list[3] = True
+                edited_line=lines[i][14:]+"\n"
+            elif(is_heading_list[2]):
+                is_heading_list[3] = False
+                edited_line=lines[i][14:]+"\n"
+            else:
+                is_heading_list[3] = False
+                if(is_heading_list[:4]==[False,False,False,False]):
+                    edited_line="        "
+                elif(is_heading_list[1:4]==[False,False,False]):
+                    edited_line = "    "
+                edited_line += lines[i][12:] + "\n"
+
+        else:
+            edited_line=lines[i]
+
+        new_contents += edited_line + "\n"
+
+    return new_contents
 
 
 def extract_links(string: str) -> List[Match]:
