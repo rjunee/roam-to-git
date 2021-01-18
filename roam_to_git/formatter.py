@@ -135,6 +135,7 @@ def youtube_embed(contents: str):
 # TODO This function is from Manoj on Fiverr.  Not the best code, should be refactored
 def remove_toplevel_bullets(contents: str):
     lines = contents.splitlines()
+    is_last_one_bullet=False
     is_heading_list=[False, False, False, False]
     new_contents = ""
 
@@ -148,46 +149,46 @@ def remove_toplevel_bullets(contents: str):
                 is_heading_list[0]=True
             else:
                 is_heading_list[0] = False
-            edited_line=lines[i][2:]+"\n"
+            edited_line="\n"+lines[i][2:]
 
         elif lines[i][0:5] == "    -":
             if('#' in lines[i][6:].split(" ")[0]):
                 is_heading_list[1] = True
-                edited_line=lines[i][6:]+"\n"
+                edited_line="\n"+lines[i][6:]
             elif(is_heading_list[0]):
                 is_heading_list[1] = False
-                edited_line=lines[i][6:]+"\n"
+                edited_line="\n"+lines[i][6:]
             else:
                 is_heading_list[1] = False
-                edited_line = lines[i][4:] + "\n"
+                edited_line = lines[i][4:]
 
         elif lines[i][0:9] == "        -":
             if('#' in lines[i][10:].split(" ")[0]):
                 is_heading_list[2] = True
-                edited_line=lines[i][10:]+"\n"
+                edited_line="\n"+lines[i][10:]
             elif(is_heading_list[1]):
                 is_heading_list[2] = False
-                edited_line=lines[i][10:]+"\n"
+                edited_line="\n"+lines[i][10:]
             else:
                 is_heading_list[2] = False
                 if(is_heading_list[:3]==[False,False,False]):
                     edited_line="    "
-                edited_line += lines[i][8:] + "\n"
+                edited_line += lines[i][8:]
 
         elif lines[i][0:13] == "            -":
             if('#' in lines[i][14:].split(" ")[0]):
                 is_heading_list[3] = True
-                edited_line=lines[i][14:]+"\n"
+                edited_line="\n"+lines[i][14:]
             elif(is_heading_list[2]):
                 is_heading_list[3] = False
-                edited_line=lines[i][14:]+"\n"
+                edited_line="\n"+lines[i][14:]
             else:
                 is_heading_list[3] = False
                 if(is_heading_list[:4]==[False,False,False,False]):
                     edited_line="        "
                 elif(is_heading_list[1:4]==[False,False,False]):
                     edited_line = "    "
-                edited_line += lines[i][12:] + "\n"
+                edited_line += lines[i][12:]
 
         else:
             edited_line=lines[i]
