@@ -110,7 +110,7 @@ def extract_permalink(contents: str):
         # Strip meta tag
         contents = re.sub(r"permalink\:\: +\"(.+)\"", '', contents)
         # Add to frontmatter
-        contents = re.sub(r"^---\ntitle\:", "---\npermalink: \"" + permalink_found.group(1) + "\"\ntitle:", contents)
+        contents = re.sub(r"^---\n", "---\npermalink: \"" + permalink_found.group(1) + "\"\n", contents)
 
     return contents
 
@@ -125,7 +125,8 @@ def extract_featured_image(contents: str):
         # Strip meta tag
         contents = re.sub(r"note\-image\:\:.*https\:\/\/unsplash\.com\/photos\/.*", '', contents)
         # Add to frontmatter
-        contents = re.sub(r"^---\ntitle\:", "---\nfeatured_image: 'https://source.unsplash.com/" + image_found.group(1) + "/800x300'\ntitle:", contents)
+        logger.info("Addding image " + image_found.group(1))
+        contents = re.sub(r"^---\n", "---\nfeatured_image: 'https://source.unsplash.com/" + image_found.group(1) + "/800x300'\n", contents)
         #logger.info(contents)
     return contents
 
