@@ -84,6 +84,7 @@ def format_markdown_notes(contents: Dict[str, str], notes_dir: Path, allowed_not
 
             # Format content. Backlinks content will be formatted automatically.
             content = format_to_do(content)
+            content = extract_permalink(content)
             content = extract_featured_image(content)
             content = clean_or(content)
             content = youtube_embed(content)
@@ -99,6 +100,18 @@ def format_markdown_notes(contents: Dict[str, str], notes_dir: Path, allowed_not
 def format_to_do(contents: str):
     contents = re.sub(r"{{\[\[TODO\]\]}} *", r"[ ] ", contents)
     contents = re.sub(r"{{\[\[DONE\]\]}} *", r"[x] ", contents)
+    return contents
+
+# If note has a permalink attribute then add permalink to frontmatter
+def extract_permalink(contents: str):
+    # match permalink:: "/"
+    permalink_found = re.search(r"permalink\:\: +\"(.+)\"", contents)
+    if permalink_found:
+        # Strip meta tag
+        contents = re.sub(r"permalink\:\: +\"(.+)\"", '', contents)
+        # Add to frontmatter
+        contents = re.sub(r"^---\ntitle\:", "---\npermalink: \"" + permalink_found.group(1) + "\"\ntitle:", contents)
+
     return contents
 
 
